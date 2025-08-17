@@ -12,10 +12,11 @@ client = genai.Client(api_key=api_key)
 
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: uv run main.py <prompt>")
+    if len(sys.argv) < 2:
+        print("Usage: uv run main.py <prompt> [--verbose]")
         exit(1)
 
+    verbose = "--verbose" in sys.argv[2:]
     prompt = sys.argv[1]
     messages = [
         types.Content(role="user", parts=[types.Part(text=prompt)])
@@ -25,8 +26,13 @@ def main():
         contents=messages
     )
     print(response.text)
-    print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-    print(f"Response tokens: {response.usage_metadata.candidates_token_count}")
+
+    if verbose:
+        print("Verbose Info:")
+        print(f"User prompt: {prompt}")
+        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
+        print(f"Response tokens: {
+              response.usage_metadata.candidates_token_count}")
 
 
 if __name__ == "__main__":
