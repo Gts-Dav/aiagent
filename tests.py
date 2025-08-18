@@ -2,6 +2,7 @@ import os
 from functions.get_files_info import get_files_info
 from functions.get_file_content import get_file_content
 from functions.write_file_content import write_file_content
+from functions.run_python_file import run_python_file
 
 
 def main():
@@ -27,6 +28,11 @@ def main():
         os.remove("testEnvironments/calculator/pkg/morelorem.txt")
     except Exception as e:
         print(e)
+
+    print("\nFunction: run_python_file")
+    for file, args in [("main.py", []), ("main.py", ["3 + 5"]), ("tests.py", []), ("../main.py", []), ("nonexistent.py", [])]:
+        result = run_python_file("testEnvironments/calculator", file, args)
+        print(f"Result for \"{file}\" output:\n{result}")
 
 
 if __name__ == "__main__":
