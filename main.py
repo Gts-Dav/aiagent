@@ -1,5 +1,6 @@
 import os
 import sys
+import config
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
@@ -48,30 +49,56 @@ def main():
     messages = [
         types.Content(role="user", parts=[types.Part(text=prompt)])
     ]
+
+    response = None
+    for i in range(0, config.MAX_AGENT_RECALLS):
+        try:
+            response = generate_content(client, messages, verbose)
+            if response:
+                print("Final response:")
+                print(response.text)
+                return
+        except Exception as e:
+            print(f"Error in generate_content: {e}")
+
+    print()
+
+    if verbose:
+        print("Verbose Info:")
+        print(f"Prompt tokens: {
+            response.usage_metadata.prompt_token_count}")
+        print(f"Response tokens: {
+            response.usage_metadata.candidates_token_count}")
+
+
+def generate_content(client, messages, verbose):
     response = client.models.generate_content(
         model="gemini-2.0-flash-001",
         contents=messages,
         config=types.GenerateContentConfig(
             tools=[available_functions], system_instruction=system_prompt)
     )
+
+    for candidate in response.candidates:
+        messages.append(candidate.content)
+
     if not response.function_calls:
-        print(response.text)
+        return response
     else:
         for function_call_part in response.function_calls:
             result = call_function(
-                function_call_part, verbose).parts[0].function_response.response
-            if not result:
+                function_call_part, verbose)
+            if (
+                    not result.parts
+                    or not result.parts[0].function_response
+            ):
                 raise Exception("Function returned no result!")
 
             if verbose:
                 print(f"-> {result}")
 
-    if verbose:
-        print("Verbose Info:")
-        print(f"User prompt: {prompt}")
-        print(f"Prompt tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response tokens: {
-              response.usage_metadata.candidates_token_count}")
+            messages.append(types.Content(
+                role="user", parts=[types.Part(text=result.parts[0].function_response.response["result"])]))
 
 
 if __name__ == "__main__":

@@ -1,13 +1,14 @@
 import os
-import dotenv
 from google.genai import types
+from dotenv import load_dotenv
+
 from functions.get_files_info import get_files_info
 from functions.get_file_content import get_file_content
 from functions.write_file_content import write_file_content
 from functions.run_python_file import run_python_file
 
 
-dotenv.load_dotenv()
+load_dotenv()
 WORKING_DIRECTORY = os.environ.get("WORKING_DIRECTORY")
 
 functions = {
